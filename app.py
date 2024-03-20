@@ -12,11 +12,25 @@ def get_count_sum_apple(row):
 
 def main():
 
-    apple_commission_factor = 0.85
-    google_commission_factor = 0.85
-
     st.set_page_config(
         page_title="Stores Earnings Parser For Brazilian Tax Authorities", layout="wide")
+
+    st.header("Commission and Taxes")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        apple_commission_percentage = st.number_input(
+            "Apple Commission %", value=15.00, step=0.01)
+        apple_commission_factor = (100 - apple_commission_percentage)/100
+    with col2:
+        google_commission_percentage = st.number_input(
+            "Google Commission %", value=15.00, step=0.01)
+        google_commission_factor = (100 - google_commission_percentage)/100
+    with col3:
+        taxes_percentage = st.number_input("Taxes %", value=17.34, step=0.01)
+        taxes_factor = taxes_percentage / 100
+
+    st.divider()
 
     st.header("Android - Google")
 
@@ -68,9 +82,13 @@ def main():
         google_ex_balance_count = google_ex_sales_count - google_ex_refund_count
         google_ex_balance_sum = google_ex_sales_sum + google_ex_refund_sum
 
-        # commissions
-        google_br_commission = google_br_balance_sum * google_commission_factor
-        google_ex_commission = google_ex_balance_sum * google_commission_factor
+        # Values after Commissions
+        google_br_after_commission = google_br_balance_sum * google_commission_factor
+        google_ex_after_commission = google_ex_balance_sum * google_commission_factor
+
+        # Taxes
+        google_br_taxes = google_br_balance_sum * taxes_factor
+        google_ex_taxes = google_ex_balance_sum * taxes_factor
 
         # Totals
         google_total_sales_count = google_br_sales_count + google_ex_sales_count
@@ -79,7 +97,8 @@ def main():
         google_total_refund_sum = google_br_refund_sum + google_ex_refund_sum
         google_total_balance_count = google_br_balance_count + google_ex_balance_count
         google_total_balance_sum = google_br_balance_sum + google_ex_balance_sum
-        google_total_commission = google_br_commission + google_ex_commission
+        google_total_after_commission = google_br_after_commission + google_ex_after_commission
+        google_total_taxes = google_br_taxes + google_ex_taxes
 
         data = {
             '': ['Brasil', 'Exterior', 'TOTAL'],
@@ -89,7 +108,8 @@ def main():
             'Refund Sum': [google_br_refund_sum, google_ex_refund_sum, google_total_refund_sum],
             'Balance Count': [google_br_balance_count, google_ex_balance_count, google_total_balance_count],
             'Balance Sum': [google_br_balance_sum, google_ex_balance_sum, google_total_balance_sum],
-            'Net Balance': [google_br_commission, google_ex_commission, google_total_commission]
+            'Net Balance': [google_br_after_commission, google_ex_after_commission, google_total_after_commission],
+            'Taxes for NFe': [google_br_taxes, google_ex_taxes, google_total_taxes],
         }
 
         df = pd.DataFrame(data)
@@ -102,6 +122,7 @@ def main():
             'Balance Count': '{:,.0f}',
             'Balance Sum': 'R$ {:,.2f}',
             'Net Balance': 'R$ {:,.2f}',
+            'Taxes for NFe': 'R$ {:,.2f}',
         }, thousands='.', decimal=','))
 
     st.divider()
@@ -143,20 +164,26 @@ def main():
         [apple_ex_sales_count, apple_ex_sales_sum] = get_count_sum_apple(
             df_filtered)
 
-        # commissions
-        apple_br_commission = apple_br_sales_sum * apple_commission_factor
-        apple_ex_commission = apple_ex_sales_sum * apple_commission_factor
+        # Values afater commissions
+        apple_br_after_commission = apple_br_sales_sum * apple_commission_factor
+        apple_ex_after_commission = apple_ex_sales_sum * apple_commission_factor
+
+        # Taxes
+        apple_br_taxes = apple_br_sales_sum * taxes_factor
+        apple_ex_taxes = apple_ex_sales_sum * taxes_factor
 
         # Totals
         apple_total_sales_count = apple_br_sales_count + apple_ex_sales_count
         apple_total_sales_sum = apple_br_sales_sum + apple_ex_sales_sum
-        apple_total_commision = apple_br_commission + apple_ex_commission
+        apple_total_after_commision = apple_br_after_commission + apple_ex_after_commission
+        apple_total_taxes = apple_br_taxes + apple_ex_taxes
 
         data = {
             '': ['Brasil', 'Exterior', 'TOTAL'],
             'Sales Count': [apple_br_sales_count, apple_ex_sales_count, apple_total_sales_count],
             'Sales Sum': [apple_br_sales_sum, apple_ex_sales_sum, apple_total_sales_sum],
-            'Net Balance': [apple_br_commission, apple_ex_commission, apple_total_commision],
+            'Net Balance': [apple_br_after_commission, apple_ex_after_commission, apple_total_after_commision],
+            'Taxes for NFe': [apple_br_taxes, apple_ex_taxes, apple_total_taxes],
         }
 
         df = pd.DataFrame(data)
@@ -165,6 +192,7 @@ def main():
             'Sales Count': '{:,.0f}',
             'Sales Sum': 'R$ {:,.2f}',
             'Net Balance': 'R$ {:,.2f}',
+            'Taxes for NFe': 'R$ {:,.2f}',
         }, thousands='.', decimal=','))
 
 
